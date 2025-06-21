@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
 
     input[strlen(input) - 1] = '\0';
 
-    if (strcmp(input, "exit 0") == 0) {
+    if (strncmp(input, "exit 0", 6) == 0) {
         break;
     }
 
