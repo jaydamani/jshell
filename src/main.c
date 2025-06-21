@@ -4,12 +4,12 @@
 
 int main(int argc, char *argv[]) {
   setbuf(stdout, NULL);
+  char input[100];
 
   for (;;){
     printf("$ ");
 
     // Wait for user input
-    char input[100];
     fgets(input, 100, stdin);
 
     input[strlen(input) - 1] = '\0';
