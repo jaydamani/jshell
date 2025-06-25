@@ -10,7 +10,12 @@ bool isDelimeter(char chr) { return chr == ' ' || chr == '\0'; }
 
 void printToken(struct token *t) {
   struct token *p;
+  bool isFirst = true;
   for (p = t; p != NULL; p = p->next) {
+    if (!isFirst) {
+        printf(" ");
+    }
+    isFirst = false;
     printf("%s", p->value);
   }
   printf("\n");
@@ -26,7 +31,7 @@ int tokenize(char *str, struct token **res) {
         isParsingToken = false;
         int len = end - start;
         char *out = (char *)malloc(len * sizeof(char));
-        strncpy(out, &str[start], len + 1);
+        strncpy(out, &str[start], len);
         struct token *t = (struct token *)malloc(sizeof(struct token));
         t->value = out;
         if (tail == NULL) {
