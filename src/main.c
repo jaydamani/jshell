@@ -89,6 +89,19 @@ int main(int argc, char *argv[]) {
       } else {
         printf("%s: not found\n", arg0);
       }
+    } else if ((cmd_path = find_path_cmd(cmd))) {
+      pid_t pid = fork();
+
+      if (pid == -1) {
+        printf("%s\n", strerror(errno));
+      } else if (pid == 0) {
+        int s = execv(cmd_path, tokens);
+        if (s != 0)
+          printf("%s\n", strerror(errno));
+        exit(-1);
+      }
+      int wstatus;
+      int s = wait(&wstatus);
     } else {
       printf("%s: command not found\n", cmd);
     }

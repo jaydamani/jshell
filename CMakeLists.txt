@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
+set(CMAKE_BUILD_TYPE Debug)
+
 project(codecrafters-shell)
 
 file(GLOB_RECURSE SOURCE_FILES src/*.c src/*.h)
