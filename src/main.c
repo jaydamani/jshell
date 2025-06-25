@@ -10,9 +10,9 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define BUILTINS_COUNT 3
+#define BUILTINS_COUNT 4
 
-char *cmd_list[BUILTINS_COUNT] = {"exit", "echo", "type"};
+char *cmd_list[BUILTINS_COUNT] = {"exit", "echo", "type", "pwd"};
 
 int find_builtin_cmd(char *cmd) {
   for (int i = 0; i < BUILTINS_COUNT; i++) {
@@ -86,9 +86,13 @@ int main(int argc, char *argv[]) {
         printf("%s is a shell builtin\n", arg0);
       } else if ((cmd_path = find_path_cmd(arg0))) {
         printf("%s is %s\n", arg0, cmd_path);
+        free(cmd_path);
       } else {
         printf("%s: not found\n", arg0);
       }
+    } else if (builtin == 3) {
+        char buf[PATH_MAX];
+        printf("%s\n", getcwd(buf, PATH_MAX));
     } else if ((cmd_path = find_path_cmd(cmd))) {
       pid_t pid = fork();
 
@@ -102,10 +106,10 @@ int main(int argc, char *argv[]) {
       }
       int wstatus;
       int s = wait(&wstatus);
+      free(cmd_path);
     } else {
       printf("%s: command not found\n", cmd);
     }
-    free(cmd_path);
     freeTokens(tokens, tcount);
   }
   return exitcode;
