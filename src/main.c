@@ -1,5 +1,8 @@
 #include "lexer.h"
+#include "path.h"
+#include <linux/limits.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -14,6 +17,26 @@ int find_builtin_cmd(char *cmd) {
     }
   }
   return -1;
+}
+
+char* find_path_cmd(char* cmd) {
+    char* path;
+    char* path_var = strdup(getenv("PATH"));
+    char* file_path = malloc(PATH_MAX);
+    char* res = NULL;
+
+    while((path = strtok_r(path_var, ":", &path_var))) {
+        append_path(path, cmd, file_path);
+        realpath(file_path, file_path);
+        if (access(file_path, F_OK) == 0) {
+            res = file_path;
+            break;
+        }
+    }
+    if (res == NULL) {
+        free(file_path);
+    }
+    return res;
 }
 
 int main(int argc, char *argv[]) {
@@ -48,12 +71,19 @@ int main(int argc, char *argv[]) {
         if (find_builtin_cmd(arg0) != -1) {
           printf("%s is a shell builtin\n", arg0);
         } else {
-          printf("%s: not found\n", arg0);
+          char *cmd_path = find_path_cmd(arg0);
+          if (cmd_path != NULL) {
+            printf("%s is %s\n", arg0, cmd_path);
+            free(cmd_path);
+          } else {
+            printf("%s: not found\n", arg0);
+          }
         }
       }
     } else {
       printf("%s: command not found\n", cmd);
     }
+    freeToken(t);
   }
   return exitcode;
 }
