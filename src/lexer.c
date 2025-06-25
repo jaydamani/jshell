@@ -1,46 +1,47 @@
+#include "lexer.h"
 #include <linux/limits.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "lexer.h"
-
+#include <unistd.h>
 
 bool isDelimeter(char chr) { return chr == ' ' || chr == '\0'; }
 
 void printToken(struct token *t) {
-  struct token *p;
-  bool isFirst = true;
-  for (p = t; p != NULL; p = p->next) {
-    if (!isFirst) {
-        printf(" ");
-    }
-    isFirst = false;
-    printf("%s", p->value);
+  struct token *p = t->next;
+  printf("%s", t->value);
+  while (p != NULL) {
+    if (p->value)
+      printf(" %s", p->value);
+    else
+      printf(" <null>");
+    p = p->next;
   }
   printf("\n");
 }
 
-int tokenize(char *str, struct token **res) {
+char **tokenize(char *str, size_t *argc) {
   int start = 0, end = 0;
   bool isParsingToken = false;
-  struct token *tail = NULL;
+  struct token *tail = malloc(sizeof(struct token));
+  tail->value = (char*)0;
+  struct token *head = tail;
+  int tc = 0;
   while (end <= strlen(str)) {
     if (isDelimeter(str[end])) {
       if (isParsingToken) {
         isParsingToken = false;
         int len = end - start;
-        char *out = malloc(len+1);
+        char *out = malloc(len + 1);
         strncpy(out, &str[start], len);
         out[len] = '\0';
+        tail->value = out;
+        tc++;
         struct token *t = malloc(sizeof(struct token));
-        t->value = out;
-        if (tail == NULL) {
-          *res = t;
-        }
-        else {
-            tail->next = t;
-        }
+        t->value = (char*)0;
+        tail->next = t;
         tail = t;
       }
     } else if (!isParsingToken) {
@@ -50,23 +51,32 @@ int tokenize(char *str, struct token **res) {
     end++;
   }
 
-  return 0;
+  char **args = (char **)malloc(tc+1 * sizeof(char *));
+  struct token *p;
+  for (int i = 0; i < tc+1; i++) {
+    args[i] = head->value;
+    p = head;
+    head = head->next;
+    free(p);
+  }
+  *argc = tc;
+  return args;
 }
 
 // int main(void) {
-//   struct token *t;
-//   struct token *p;
-//   tokenize("cmd arg1 arg2", &t);
-//   printToken(t);
-//   free(t);
+//   size_t tc;
+//   char **arr = tokenize("cmd arg1 arg2", &tc);
+//   for (int i = 0; i < tc; i++) {
+//     if (arr[i])
+//       printf("%s\n", arr[i]);
+//     else
+//       printf("<null>\n");
+//   }
 // }
 
-void freeToken(struct token *t) {
-  struct token *p;
-  while (t != NULL) {
-    p = t;
-    t = t->next;
-    free(p->value);
-    free(p);
-  }
+void freeTokens(char ** tokens, int tc) {
+    for (int i = 0;i < tc; i++) {
+        free(tokens[i]);
+    }
+    free(tokens);
 }

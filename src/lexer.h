@@ -1,8 +1,9 @@
+#include <stddef.h>
 struct token {
   char *value;
   struct token *next;
 };
 
-int tokenize(char *str, struct token **res);
+char **tokenize(char *str, size_t* tc);
 void printToken(struct token *t);
-void freeToken(struct token *t);
+void freeTokens(char ** tokens, int tc);

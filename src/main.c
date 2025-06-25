@@ -1,10 +1,14 @@
 #include "lexer.h"
 #include "path.h"
+#include <errno.h>
 #include <linux/limits.h>
+#include <stddef.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 #define BUILTINS_COUNT 3
 
@@ -19,24 +23,24 @@ int find_builtin_cmd(char *cmd) {
   return -1;
 }
 
-char* find_path_cmd(char* cmd) {
-    char* path;
-    char* path_var = strdup(getenv("PATH"));
-    char* file_path = malloc(PATH_MAX);
-    char* res = NULL;
+char *find_path_cmd(char *cmd) {
+  char *path;
+  char *path_var = strdup(getenv("PATH"));
+  char *file_path = malloc(PATH_MAX);
+  char *res = NULL;
 
-    while((path = strtok_r(path_var, ":", &path_var))) {
-        append_path(path, cmd, file_path);
-        realpath(file_path, file_path);
-        if (access(file_path, F_OK) == 0) {
-            res = file_path;
-            break;
-        }
+  while ((path = strtok_r(path_var, ":", &path_var))) {
+    append_path(path, cmd, file_path);
+    realpath(file_path, file_path);
+    if (access(file_path, F_OK) == 0) {
+      res = file_path;
+      break;
     }
-    if (res == NULL) {
-        free(file_path);
-    }
-    return res;
+  }
+  if (res == NULL) {
+    free(file_path);
+  }
+  return res;
 }
 
 int main(int argc, char *argv[]) {
@@ -50,40 +54,46 @@ int main(int argc, char *argv[]) {
 
     input[strlen(input) - 1] = '\0';
 
-    struct token *t;
-    tokenize(input, &t);
+    size_t tcount;
+    char **tokens = tokenize(input, &tcount);
 
-    char *cmd = t->value;
+    // printf("DEBUG> %d\n", tcount);
+    // for (int i = 0; i < tcount + 1; i++) {
+    //   if (tokens[i])
+    //     printf("DEBUG> %s\n", tokens[i]);
+    //   else
+    //     printf("<null>\n");
+    // }
 
+    char *cmd = tokens[0];
+    char *cmd_path;
     int builtin = find_builtin_cmd(cmd);
     if (builtin == 0) {
-      struct token *arg0 = t->next;
-      if (arg0 != NULL) {
-        exitcode = atoi(t->next->value);
+      if (tcount > 1) {
+        exitcode = atoi(tokens[1]);
       }
       break;
     } else if (builtin == 1) {
-      printToken(t->next);
+      for (int i = 1; i < tcount; i++)
+        printf("%s%s", i == 1 ? "" : " ", tokens[i]);
+      printf("\n");
     } else if (builtin == 2) {
-      struct token *arg0_t = t->next;
-      if (arg0_t != NULL) {
-        char *arg0 = arg0_t->value;
-        if (find_builtin_cmd(arg0) != -1) {
-          printf("%s is a shell builtin\n", arg0);
-        } else {
-          char *cmd_path = find_path_cmd(arg0);
-          if (cmd_path != NULL) {
-            printf("%s is %s\n", arg0, cmd_path);
-            free(cmd_path);
-          } else {
-            printf("%s: not found\n", arg0);
-          }
-        }
+      if (tcount < 2) {
+        continue;
+      }
+      char *arg0 = tokens[1];
+      if (find_builtin_cmd(arg0) != -1) {
+        printf("%s is a shell builtin\n", arg0);
+      } else if ((cmd_path = find_path_cmd(arg0))) {
+        printf("%s is %s\n", arg0, cmd_path);
+      } else {
+        printf("%s: not found\n", arg0);
       }
     } else {
       printf("%s: command not found\n", cmd);
     }
-    freeToken(t);
+    free(cmd_path);
+    freeTokens(tokens, tcount);
   }
   return exitcode;
 }
