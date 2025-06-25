@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
       char *path = tokens[1];
       realpath(path, path);
       if (access(path, F_OK) != 0)
-        printf("cd:%s: No such file or directory", path);
+        printf("cd: %s: No such file or directory", path);
       else
         chdir(path);
     } else if ((cmd_path = find_path_cmd(cmd))) {
