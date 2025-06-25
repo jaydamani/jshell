@@ -10,9 +10,9 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define BUILTINS_COUNT 4
+#define BUILTINS_COUNT 5
 
-char *cmd_list[BUILTINS_COUNT] = {"exit", "echo", "type", "pwd"};
+char *cmd_list[BUILTINS_COUNT] = {"exit", "echo", "type", "pwd", "cd"};
 
 int find_builtin_cmd(char *cmd) {
   for (int i = 0; i < BUILTINS_COUNT; i++) {
@@ -91,8 +91,15 @@ int main(int argc, char *argv[]) {
         printf("%s: not found\n", arg0);
       }
     } else if (builtin == 3) {
-        char buf[PATH_MAX];
-        printf("%s\n", getcwd(buf, PATH_MAX));
+      char buf[PATH_MAX];
+      printf("%s\n", getcwd(buf, PATH_MAX));
+    } else if (builtin == 4) {
+      char *path = tokens[1];
+      realpath(path, path);
+      if (access(path, F_OK) != 0)
+        printf("cd:%s: No such file or directory", path);
+      else
+        chdir(path);
     } else if ((cmd_path = find_path_cmd(cmd))) {
       pid_t pid = fork();
 
