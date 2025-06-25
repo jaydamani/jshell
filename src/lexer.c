@@ -51,7 +51,7 @@ char **tokenize(char *str, size_t *argc) {
     end++;
   }
 
-  char **args = (char **)malloc(tc+1 * sizeof(char *));
+  char **args = malloc((tc+1) * sizeof(char *));
   struct token *p;
   for (int i = 0; i < tc+1; i++) {
     args[i] = head->value;
