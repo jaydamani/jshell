@@ -30,9 +30,10 @@ int tokenize(char *str, struct token **res) {
       if (isParsingToken) {
         isParsingToken = false;
         int len = end - start;
-        char *out = (char *)malloc(len * sizeof(char));
+        char *out = malloc(len+1);
         strncpy(out, &str[start], len);
-        struct token *t = (struct token *)malloc(sizeof(struct token));
+        out[len] = '\0';
+        struct token *t = malloc(sizeof(struct token));
         t->value = out;
         if (tail == NULL) {
           *res = t;
