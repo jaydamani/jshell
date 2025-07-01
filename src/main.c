@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
     size_t tcount;
     char **tokens = tokenize(input, &tcount);
 
-    // printf("DEBUG> %d\n", tcount);
+    // printf("DEBUG> %zu\n", tcount);
     // for (int i = 0; i < tcount + 1; i++) {
     //   if (tokens[i])
     //     printf("DEBUG> %s\n", tokens[i]);
