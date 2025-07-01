@@ -61,23 +61,24 @@ char **tokenize(char *str, size_t *argc) {
     } else if (isDelimeter(*str)) {
       str++;
     } else if (*str == '"') {
-      char *start = str;
+      char *start = str++;
       char prevChar = 0;
-      while (*str != 0 && (*str != '"' || prevChar != '\\'))
+      while (*str != 0 && (*str != '"' || prevChar == '\\'))
         prevChar = *str++;
-      tc = appendStrToken(start, str - start + 1, &tail, tc);
-    } else if (*str == '"') {
-      char *start = str;
-      char prevChar = 0;
-      while (*str != 0 && *str != '"')
-        prevChar = *str++;
-      tc = appendStrToken(start, str - start + 1, &tail, tc);
+      str++;
+      tc = appendStrToken(start, str - start, &tail, tc);
+    } else if (*str == '\'') {
+      char *start = str++;
+      while (*str != 0 && *str != '\'')
+        str++;
+      str++;
+      tc = appendStrToken(start, str - start, &tail, tc);
     } else {
-      char *start = str;
+      char *start = str++;
       while (*str != 0 && isNotSpecialChar(*str))
         str++;
       // printf("%d \n", tc);
-      tc = appendStrToken(start, str - start + 1, &tail, tc);
+      tc = appendStrToken(start, str - start, &tail, tc);
     }
   }
 
@@ -86,12 +87,10 @@ char **tokenize(char *str, size_t *argc) {
   wordexp_t *w = malloc(sizeof(wordexp_t));
   for (int i = 0; i < tc + 1; i++) {
     char *val = head->value;
+    // printf(">%s<", val);
     if (head->type == T_IDENTIFIER) {
       wordexp(val, w, 0);
-      // printf("%zu", w->we_wordc);
       args[i] = w->we_wordv[0];
-      // for (int i = 0; i < w->we_wordc; i++)
-      // printf("> %s <\n", w->we_wordv[i]);
     } else {
       args[i] = val;
     }
