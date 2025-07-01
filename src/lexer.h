@@ -1,6 +1,14 @@
 #include <stddef.h>
+
+enum token_type {
+  T_IDENTIFIER,
+  T_OPERATION,
+  T_END
+};
+
 struct token {
   char *value;
+  enum token_type type;
   struct token *next;
 };
 

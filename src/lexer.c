@@ -6,8 +6,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <wordexp.h>
 
 bool isDelimeter(char chr) { return chr == ' ' || chr == '\0'; }
+
+bool isNotSpecialChar(char chr) { return !isDelimeter(chr); }
 
 void printToken(struct token *t) {
   struct token *p = t->next;
@@ -22,39 +25,76 @@ void printToken(struct token *t) {
   printf("\n");
 }
 
+struct token *createEmptyToken() {
+  struct token *t = malloc(sizeof(struct token));
+  t->value = (char *)0;
+  t->type = T_END;
+  return t;
+}
+
+int appendToken(char *value, enum token_type type, struct token **tail,
+                 int tc) {
+  (*tail)->value = value;
+  (*tail)->type = type;
+  struct token *t = createEmptyToken();
+  tc++;
+  (*tail)->next = t;
+  (*tail) = t;
+  return tc;
+}
+
+int appendStrToken(char *chr, int len, struct token **tail, int tc) {
+  char *out = malloc(len + 1);
+  strncpy(out, chr, len);
+  out[len] = '\0';
+  appendToken(out, T_IDENTIFIER, tail, tc);
+}
+
 char **tokenize(char *str, size_t *argc) {
-  int start = 0, end = 0;
-  bool isParsingToken = false;
-  struct token *tail = malloc(sizeof(struct token));
-  tail->value = (char*)0;
+  struct token *tail = createEmptyToken();
   struct token *head = tail;
   int tc = 0;
-  while (end <= strlen(str)) {
-    if (isDelimeter(str[end])) {
-      if (isParsingToken) {
-        isParsingToken = false;
-        int len = end - start;
-        char *out = malloc(len + 1);
-        strncpy(out, &str[start], len);
-        out[len] = '\0';
-        tail->value = out;
-        tc++;
-        struct token *t = malloc(sizeof(struct token));
-        t->value = (char*)0;
-        tail->next = t;
-        tail = t;
-      }
-    } else if (!isParsingToken) {
-      isParsingToken = true;
-      start = end;
+  while (*str != 0) {
+    if (*str == '#') {
+      while (*str != 0 && *str != '\n')
+        str++;
+    } else if (isDelimeter(*str)) {
+      str++;
+    } else if (*str == '"') {
+      char *start = str;
+      char prevChar = 0;
+      while (*str != 0 && (*str != '"' || prevChar != '\\'))
+        prevChar = *str++;
+      tc = appendStrToken(start, str - start + 1, &tail, tc);
+    } else if (*str == '"') {
+      char *start = str;
+      char prevChar = 0;
+      while (*str != 0 && *str != '"')
+        prevChar = *str++;
+      tc = appendStrToken(start, str - start + 1, &tail, tc);
+    } else {
+      char *start = str;
+      while (*str != 0 && isNotSpecialChar(*str))
+        str++;
+      // printf("%d \n", tc);
+      tc = appendStrToken(start, str - start + 1, &tail, tc);
     }
-    end++;
   }
 
-  char **args = malloc((tc+1) * sizeof(char *));
+  char **args = malloc((tc + 1) * sizeof(char *));
   struct token *p;
-  for (int i = 0; i < tc+1; i++) {
-    args[i] = head->value;
+  wordexp_t *w = malloc(sizeof(wordexp_t));
+  for (int i = 0; i < tc + 1; i++) {
+    char *val = head->value;
+    if (head->type == T_IDENTIFIER) {
+      wordexp(val, w, 0);
+      // printf("%zu", w->we_wordc);
+      args[i] = w->we_wordv[0];
+      // for (int i = 0; i < w->we_wordc; i++)
+      // printf("> %s <\n", w->we_wordv[i]);
+    } else {
+      args[i] = val;
+    }
     p = head;
     head = head->next;
     free(p);
@@ -74,9 +114,9 @@ char **tokenize(char *str, size_t *argc) {
 //   }
 // }
 
-void freeTokens(char ** tokens, int tc) {
-    for (int i = 0;i < tc; i++) {
-        free(tokens[i]);
-    }
-    free(tokens);
+void freeTokens(char **tokens, int tc) {
+  for (int i = 0; i < tc; i++) {
+    free(tokens[i]);
+  }
+  free(tokens);
 }
