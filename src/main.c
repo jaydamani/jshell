@@ -32,7 +32,7 @@ char *find_path_cmd(char *cmd) {
   while ((path = strtok_r(path_var, ":", &path_var))) {
     append_path(path, cmd, file_path);
     realpath(file_path, file_path);
-    if (access(file_path, F_OK) == 0) {
+    if (access(file_path, X_OK) == 0) {
       res = file_path;
       break;
     }
