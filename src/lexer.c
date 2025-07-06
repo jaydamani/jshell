@@ -46,15 +46,12 @@ enum L_OUT nextToken(struct lexer *l, struct token *t) {
   char *start = l->curr;
   do {
     if (*l->curr == '"') {
-      do {
-        l->curr++;
-        if (*l->curr == '\\') {
-            l->curr++;
-            if (*l->curr != '\0') l->curr++;
-        }
-      } while (*l->curr != '\0' && *l->curr != '"');
-      if (*l->curr == '\0')
-        return L_EOF_DQUOTE;
+      while (*l->curr != '"') {
+        if (*++l->curr == '\\' && *++l->curr != '\0')
+          l->curr++;
+        if (*l->curr == '\0')
+          return L_EOF_DQUOTE;
+      }
     } else if (*l->curr == '\'') {
       do
         l->curr++;
