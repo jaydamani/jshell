@@ -8,114 +8,89 @@
 #include <unistd.h>
 #include <wordexp.h>
 
-bool isDelimeter(char chr) { return chr == ' ' || chr == '\0'; }
+bool isBlank(char chr) { return chr == ' '; }
 
-bool isNotSpecialChar(char chr) { return !isDelimeter(chr); }
-
-void printToken(struct token *t) {
-  struct token *p = t->next;
-  printf("%s", t->value);
-  while (p != NULL) {
-    if (p->value)
-      printf(" %s", p->value);
-    else
-      printf(" <null>");
-    p = p->next;
-  }
-  printf("\n");
+bool isNotSpecialChar(char chr) {
+  return !isBlank(chr) && chr != '\n' && chr != ';' && chr != 0 && chr != '#';
 }
 
-struct token *createEmptyToken() {
+void createLexer(char *str, struct lexer **l) {
+  *l = malloc(sizeof(struct lexer));
+  struct lexer *lexer = *l;
+  lexer->str = str;
+  lexer->curr = str;
+}
+
+enum token_type tokenType(char *str) { return T_IDENTIFIER; }
+
+enum L_OUT nextToken(struct lexer *l, struct token *t) {
+  enum token_type tt;
+
+  while (isBlank(*l->curr))
+    l->curr++;
+
+  if (*l->curr == '#') {
+    while (*l->curr != '\0' && *l->curr != '\n')
+      l->curr++;
+  }
+  if (*l->curr == '\n' || *l->curr == ';') {
+    t->str = strndup(l->curr, 1);
+    t->type = T_EOC;
+    l->curr++;
+    return L_CONTINUE;
+  }
+  if (*l->curr == '\0') {
+    t->type = T_END;
+    return L_EOF;
+  }
+  char *start = l->curr;
+  do {
+    if (*l->curr == '"') {
+      do {
+        l->curr++;
+        if (*l->curr == '\\')
+          l->curr++;
+      } while (*l->curr != '\0' && *l->curr != '"');
+      if (*l->curr == '\0')
+        return L_EOF_DQUOTE;
+    } else if (*l->curr == '\'') {
+      do
+        l->curr++;
+      while (*l->curr != '\0' && *l->curr != '\'');
+      if (*l->curr == '\0')
+        return L_EOF_QUOTE;
+    } else if (*l->curr == '\\') {
+      if (*(l->curr + 1) != 0)
+        l->curr++;
+    }
+    l->curr++;
+  } while (isNotSpecialChar(*l->curr));
+  t->str = strndup(start, l->curr - start);
+  t->type = T_IDENTIFIER;
+  return L_CONTINUE;
+}
+
+void freeToken(struct token *t) { free(t->str); }
+
+char **parse(char *str, size_t *tc) {
+  struct lexer *l;
+  createLexer(str, &l);
+
   struct token *t = malloc(sizeof(struct token));
-  t->value = (char *)0;
-  t->type = T_END;
-  return t;
-}
-
-int appendToken(char *value, enum token_type type, struct token **tail,
-                 int tc) {
-  (*tail)->value = value;
-  (*tail)->type = type;
-  struct token *t = createEmptyToken();
-  tc++;
-  (*tail)->next = t;
-  (*tail) = t;
-  return tc;
-}
-
-int appendStrToken(char *chr, int len, struct token **tail, int tc) {
-  char *out = malloc(len + 1);
-  strncpy(out, chr, len);
-  out[len] = '\0';
-  appendToken(out, T_IDENTIFIER, tail, tc);
-}
-
-char **tokenize(char *str, size_t *argc) {
-  struct token *tail = createEmptyToken();
-  struct token *head = tail;
-  int tc = 0;
-  while (*str != 0) {
-    if (*str == '#') {
-      while (*str != 0 && *str != '\n')
-        str++;
-    } else if (isDelimeter(*str)) {
-      str++;
-    } else if (*str == '"') {
-      char *start = str++;
-      char prevChar = 0;
-      while (*str != 0 && (*str != '"' || prevChar == '\\'))
-        prevChar = *str++;
-      str++;
-      tc = appendStrToken(start, str - start, &tail, tc);
-    } else if (*str == '\'') {
-      char *start = str++;
-      while (*str != 0 && *str != '\'')
-        str++;
-      str++;
-      tc = appendStrToken(start, str - start, &tail, tc);
-    } else {
-      char *start = str++;
-      while (*str != 0 && isNotSpecialChar(*str))
-        str++;
-      // printf("%d \n", tc);
-      tc = appendStrToken(start, str - start, &tail, tc);
-    }
-  }
-
-  char **args = malloc((tc + 1) * sizeof(char *));
-  struct token *p;
+  enum L_OUT end;
   wordexp_t *w = malloc(sizeof(wordexp_t));
-  for (int i = 0; i < tc + 1; i++) {
-    char *val = head->value;
-    // printf(">%s<", val);
-    if (head->type == T_IDENTIFIER) {
-      wordexp(val, w, 0);
-      args[i] = w->we_wordv[0];
-    } else {
-      args[i] = val;
+  while ((end = nextToken(l, t)) == L_CONTINUE) {
+    if (t->type == T_IDENTIFIER) {
+      wordexp(t->str, w, WRDE_APPEND);
     }
-    p = head;
-    head = head->next;
-    free(p);
+    // freeToken(t);
   }
-  *argc = tc;
-  return args;
+  // for (int i = 0; i < w->we_wordc; i++) {
+  //   printf(">%s<\n", w->we_wordv[i]);
+  // }
+  // free(t);
+  *tc = w->we_wordc;
+  return w->we_wordv;
 }
 
-// int main(void) {
-//   size_t tc;
-//   char **arr = tokenize("cmd arg1 arg2", &tc);
-//   for (int i = 0; i < tc; i++) {
-//     if (arr[i])
-//       printf("%s\n", arr[i]);
-//     else
-//       printf("<null>\n");
-//   }
-// }
-
-void freeTokens(char **tokens, int tc) {
-  for (int i = 0; i < tc; i++) {
-    free(tokens[i]);
-  }
-  free(tokens);
-}
+// int main(void) { parse("a 'b  'a"); }

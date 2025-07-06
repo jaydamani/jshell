@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
     input[strlen(input) - 1] = '\0';
 
     size_t tcount;
-    char **tokens = tokenize(input, &tcount);
+    char **tokens = parse(input, &tcount);
 
     // printf("DEBUG> %zu\n", tcount);
     // for (int i = 0; i < tcount + 1; i++) {
@@ -117,7 +117,6 @@ int main(int argc, char *argv[]) {
     } else {
       printf("%s: command not found\n", cmd);
     }
-    freeTokens(tokens, tcount);
   }
   return exitcode;
 }
