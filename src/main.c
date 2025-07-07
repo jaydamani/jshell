@@ -54,61 +54,72 @@ int main(int argc, char *argv[]) {
 
     input[strlen(input) - 1] = '\0';
 
-    size_t tcount;
-    char **tokens = parse(input, &tcount);
+    simple_command *sc;
+    int status = parse(input, &sc);
 
-    // printf("DEBUG> %zu\n", tcount);
-    // for (int i = 0; i < tcount + 1; i++) {
-    //   if (tokens[i])
-    //     printf("DEBUG> %s\n", tokens[i]);
-    //   else
-    //     printf("<null>\n");
+    // printf("DEBUG> %s\n", sc->name);
+    // printf("DEBUG> %d\n", sc->argc);
+    // sc_arg *arg = sc->args;
+    // for (int i = 0; i < sc->argc; i++) {
+    //   printf("DEBUG> %s\n", arg->str);
+    //   arg = arg->next;
     // }
 
-    char *cmd = tokens[0];
+    char *cmd = sc->name;
     char *cmd_path;
     int builtin = find_builtin_cmd(cmd);
     if (builtin == 0) {
-      if (tcount > 1) {
-        exitcode = atoi(tokens[1]);
+      if (sc->argc == 1) {
+        exitcode = atoi(sc->args->str);
       }
       break;
     } else if (builtin == 1) {
-      for (int i = 1; i < tcount; i++)
-        printf("%s%s", i == 1 ? "" : " ", tokens[i]);
+      sc_arg *arg = sc->args;
+      for (int i = 0; i < sc->argc; i++) {
+        printf("%s%s", i == 1 ? "" : " ", arg->str);
+        arg = arg->next;
+      }
       printf("\n");
     } else if (builtin == 2) {
-      if (tcount < 2) {
+      if (sc->argc < 1) {
         continue;
       }
-      char *arg0 = tokens[1];
-      if (find_builtin_cmd(arg0) != -1) {
-        printf("%s is a shell builtin\n", arg0);
-      } else if ((cmd_path = find_path_cmd(arg0))) {
-        printf("%s is %s\n", arg0, cmd_path);
+      char *arg_0 = sc->args->str;
+      if (find_builtin_cmd(arg_0) != -1) {
+        printf("%s is a shell builtin\n", arg_0);
+      } else if ((cmd_path = find_path_cmd(arg_0))) {
+        printf("%s is %s\n", arg_0, cmd_path);
         free(cmd_path);
       } else {
-        printf("%s: not found\n", arg0);
+        printf("%s: not found\n", arg_0);
       }
     } else if (builtin == 3) {
       char buf[PATH_MAX];
       printf("%s\n", getcwd(buf, PATH_MAX));
     } else if (builtin == 4) {
-      char *path = tokens[1];
+      char *path = sc->args->str;
       realpath(path, path);
       if (access(path, F_OK) != 0)
         printf("cd: %s: No such file or directory\n", path);
       else
         chdir(path);
     } else if ((cmd_path = find_path_cmd(cmd))) {
+      char *tokens[sc->argc+2];
+      tokens[0] = cmd;
+      sc_arg *arg = sc->args;
+      for (int i = 1; i <= sc->argc; i++) {
+        tokens[i] = arg->str;
+        arg = arg->next;
+      }
+      tokens[sc->argc+1] = NULL;
       pid_t pid = fork();
-
       if (pid == -1) {
         printf("%s\n", strerror(errno));
       } else if (pid == 0) {
+
         int s = execv(cmd_path, tokens);
         if (s != 0)
-          printf("%s\n", strerror(errno));
+          printf("exec error: %s\n", strerror(errno));
         exit(-1);
       }
       int wstatus;
@@ -116,6 +127,7 @@ int main(int argc, char *argv[]) {
       free(cmd_path);
     } else {
       printf("%s: command not found\n", cmd);
+      exitcode = 127;
     }
   }
   return exitcode;
