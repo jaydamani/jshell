@@ -1,5 +1,6 @@
 #include "parser.h"
 #include <stdlib.h>
+#include <string.h>
 
 enum L_STATE parse(char *str, simple_command **res) {
 
@@ -25,17 +26,18 @@ enum L_STATE parse(char *str, simple_command **res) {
         tail = &(*tail)->next;
       }
       redirection **redirect = &cmd->redirects;
-      while (t->type == T_GTR || t->type == T_GTREQ || t->type == T_LESS) {
-        token *w = malloc(sizeof(token));
-        nextToken(l, w);
-        if (w->type != T_WORD)
-          return -1;
-
+      while (t->type == T_GTR || t->type == T_GTREQ) {
         *redirect = malloc(sizeof(redirection));
-        (*redirect)->word = w;
-        (*redirect)->type = (enum REDIR_TYPE)t->type;
+        (*redirect)->type = (enum REDIR_OP)t->type;
+        (*redirect)->n = strcmp(t->str, "") == 0 ? 1 : atoi(t->str);
+        free(t->str);
+
+        nextToken(l, t);
+        if (t->type != T_WORD)
+          return -1;
+        (*redirect)->word = t->str;
+
         redirect = &(*redirect)->next;
-        freeToken(t);
         nextToken(l, t);
       }
     }

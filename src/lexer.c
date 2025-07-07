@@ -45,19 +45,23 @@ enum L_STATE nextToken(struct lexer *l, struct token *t) {
     return l->state = L_EOF;
   }
 
+  char *start = l->curr;
+
+  if (*l->curr >= '0' && *l->curr <= '9') {
+    l->curr++;
+  }
   if (*l->curr == '>') {
     t->type = T_GTR;
-    t->str = strndup(l->curr, 1);
+    t->str = strndup(start, l->curr - start);
+    l->curr++;
     return l->state = L_CONTINUE;
+  } else {
+    // go back to consume as identifiers
+    l->curr = start;
   }
 
   t->type = T_WORD;
-  char *start = l->curr;
   do {
-    if (*l->curr <= '0' || *l->curr >= '9') {
-      t->flags |= L_NONNUMERIC_FLAG;
-    }
-
     if (*l->curr == '"') {
       while (*l->curr != '"') {
         if (*++l->curr == '\\' && *++l->curr != '\0')

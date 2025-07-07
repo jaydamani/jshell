@@ -1,10 +1,12 @@
 #include "lexer.h"
 
-enum REDIR_TYPE { R_INPUT = T_LESS, R_OUT_WRITE = T_GTR, R_OUT_APPEND = T_GTREQ};
+enum REDIR_OP { R_OUT_WRITE = T_GTR, R_OUT_APPEND = T_GTREQ};
 
+// GRAMMAR: ([n]redir_op word)+
 typedef struct redirection {
-  enum REDIR_TYPE type;
-  token *word;
+  enum REDIR_OP type;
+  int n;
+  char *word;
   struct redirection *next;
 } redirection;
 

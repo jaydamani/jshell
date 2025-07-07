@@ -20,7 +20,6 @@ enum token_type {
   T_LINEBREAK,
   T_GTR,
   T_GTREQ,
-  T_LESS
 };
 
 enum LW_FLAGS {
