@@ -1,8 +1,11 @@
 #include "parser.h"
-#include <stdio.h>
 #include <stdlib.h>
 
 enum L_STATE parse(char *str, simple_command **res) {
+
+    if (str == NULL || *str == '\0') {
+        return L_EOF;
+    }
 
   simple_command *cmd = malloc(sizeof(simple_command));
 
@@ -47,6 +50,14 @@ enum L_STATE parse(char *str, simple_command **res) {
   }
   // for (int i = 0; i < w->we_wordc; i++) {
   //   printf(">%s<\n", w->we_wordv[i]);
+  // }
+
+  // printf("DEBUG> %s\n", sc->name);
+  // printf("DEBUG> %d\n", sc->argc);
+  // sc_arg *arg = sc->args;
+  // for (int i = 0; i < sc->argc; i++) {
+  //   printf("DEBUG> %s\n", arg->str);
+  //   arg = arg->next;
   // }
   free(t);
   *res = cmd;
