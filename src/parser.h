@@ -1,6 +1,6 @@
 #include "lexer.h"
 
-enum REDIR_OP { R_OUT_WRITE = T_GTR, R_OUT_APPEND = T_GTREQ};
+enum REDIR_OP { R_OUT_WRITE = T_GTR, R_OUT_APPEND = T_DGTR};
 
 // GRAMMAR: ([n]redir_op word)+
 typedef struct redirection {
@@ -20,6 +20,7 @@ typedef struct simple_command {
   sc_arg *args;
   int argc;
   redirection *redirects;
+  int redirc;
 } simple_command;
 
 enum L_STATE parse(char *str, simple_command **sc);

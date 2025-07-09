@@ -50,10 +50,21 @@ enum L_STATE nextToken(struct lexer *l, struct token *t) {
   if (*l->curr >= '0' && *l->curr <= '9') {
     l->curr++;
   }
-  if (*l->curr == '>') {
-    t->type = T_GTR;
+  if (strncmp(l->curr, ">>", 2) == 0) {
+    t->type = T_DGTR;
+    l->curr += 2;
+    if (*l->curr == '&') {
+      l->curr++;
+    }
     t->str = strndup(start, l->curr - start);
+    return l->state = L_CONTINUE;
+  } else if (*l->curr == '>') {
+    t->type = T_GTR;
     l->curr++;
+    if (*l->curr == '&') {
+      l->curr++;
+    }
+    t->str = strndup(start, l->curr - start);
     return l->state = L_CONTINUE;
   } else {
     // go back to consume as identifiers
