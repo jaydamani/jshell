@@ -15,16 +15,8 @@ bool isNotSpecialChar(char chr) {
   return !isBlank(chr) && chr != '\n' && chr != ';' && chr != 0 && chr != '#';
 }
 
-void createLexer(char *str, struct lexer **l) {
-  *l = malloc(sizeof(struct lexer));
-  struct lexer *lexer = *l;
-  lexer->str = str;
-  lexer->curr = str;
-}
-
-enum token_type tokenType(char *str) { return T_WORD; }
-
-enum L_STATE nextToken(struct lexer *l, struct token *t) {
+enum L_STATE nextToken(struct lexer *l) {
+  struct token *t = &l->tk;
   t->flags = 0;
 
   while (isBlank(*l->curr))
@@ -35,10 +27,11 @@ enum L_STATE nextToken(struct lexer *l, struct token *t) {
       l->curr++;
   }
   if (*l->curr == '\n' || *l->curr == ';') {
-    t->str = strndup(l->curr, 1);
+    t->str = l->curr;
+    t->len = 1;
     t->type = T_LINEBREAK;
     l->curr++;
-    return l->state = L_CONTINUE;
+    return l->state = L_EOL;
   }
   if (*l->curr == '\0') {
     t->type = T_END;
@@ -56,7 +49,8 @@ enum L_STATE nextToken(struct lexer *l, struct token *t) {
     if (*l->curr == '&') {
       l->curr++;
     }
-    t->str = strndup(start, l->curr - start);
+    t->str = start;
+    t->len = l->curr - start;
     return l->state = L_CONTINUE;
   } else if (*l->curr == '>') {
     t->type = T_GTR;
@@ -64,7 +58,8 @@ enum L_STATE nextToken(struct lexer *l, struct token *t) {
     if (*l->curr == '&') {
       l->curr++;
     }
-    t->str = strndup(start, l->curr - start);
+    t->str = start;
+    t->len = l->curr - start;
     return l->state = L_CONTINUE;
   } else {
     // go back to consume as identifiers
@@ -91,7 +86,8 @@ enum L_STATE nextToken(struct lexer *l, struct token *t) {
     }
     l->curr++;
   } while (isNotSpecialChar(*l->curr));
-  t->str = strndup(start, l->curr - start);
+  t->str = start;
+  t->len = l->curr - start;
   return l->state = L_CONTINUE;
 }
 

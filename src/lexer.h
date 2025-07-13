@@ -2,16 +2,11 @@
 
 typedef enum L_STATE {
   L_CONTINUE = 0,
+  L_EOL,
   L_EOF,
   L_EOF_QUOTE,
   L_EOF_DQUOTE
 } L_STATE;
-
-struct lexer {
-  char *curr;
-  char *str;
-  L_STATE state;
-};
 
 enum token_type {
   T_WORD,
@@ -28,11 +23,19 @@ enum LW_FLAGS {
 
 typedef struct token {
   char *str;
-  enum token_type type;
+  int len;
   int flags;
+  enum token_type type;
   struct token *next;
 } token;
 
+struct lexer {
+  char *curr;
+  char *str;
+  L_STATE state;
+  struct token tk;
+};
+
 void freeToken(struct token *t);
-enum L_STATE nextToken(struct lexer *l, struct token *t);
+enum L_STATE nextToken(struct lexer *l);
 void createLexer(char *str, struct lexer **l);
