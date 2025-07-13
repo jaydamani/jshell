@@ -1,4 +1,5 @@
-#include <stddef.h>
+#ifndef LEXER_H
+#define LEXER_H
 
 typedef enum L_STATE {
   L_CONTINUE = 0,
@@ -36,6 +37,5 @@ struct lexer {
   struct token tk;
 };
 
-void freeToken(struct token *t);
 enum L_STATE nextToken(struct lexer *l);
-void createLexer(char *str, struct lexer **l);
+#endif

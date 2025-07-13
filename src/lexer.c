@@ -1,11 +1,5 @@
 #include "lexer.h"
-#include <linux/limits.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <wordexp.h>
 
 #define L_NONNUMERIC_FLAG 0x0001
 
@@ -91,5 +85,4 @@ enum L_STATE nextToken(struct lexer *l) {
   return l->state = L_CONTINUE;
 }
 
-void freeToken(struct token *t) { free(t->str); }
 // int main(void) { parse("a 'b  'a"); }

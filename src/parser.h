@@ -1,3 +1,6 @@
+#ifndef PARSER_H
+#define PARSER_H
+
 #include "lexer.h"
 
 enum REDIR_OP { R_OUT_WRITE = T_GTR, R_OUT_APPEND = T_DGTR};
@@ -24,3 +27,4 @@ typedef struct simple_command {
 } simple_command;
 
 enum L_STATE parse(char *str, simple_command **sc);
+#endif

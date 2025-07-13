@@ -1,11 +1,11 @@
 #include "builtins.h"
+#include "command.h"
 #include <linux/limits.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 char *cmd_list[BUILTINS_COUNT] = {"exit", "echo", "type", "pwd", "cd"};
 int find_builtin_cmd(char *cmd) {
