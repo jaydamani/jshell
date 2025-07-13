@@ -11,6 +11,8 @@
 #include <unistd.h>
 #include <readline/readline.h>
 
+extern char *cmd_list[];
+
 int create_arg_array(simple_command *sc, char *tokens[]) {
   tokens[0] = sc->name;
   sc_arg *arg = sc->args;
@@ -23,6 +25,7 @@ int create_arg_array(simple_command *sc, char *tokens[]) {
 }
 
 int exec_cmd(simple_command *sc) {
+
   int ec = 0;
   char *cmd_path;
   int builtin = find_builtin_cmd(sc->name);
@@ -83,7 +86,46 @@ int exec_cmd(simple_command *sc) {
   return ec;
 }
 
+char *single_completion(const char *txt, int state) {
+  static int i, len;
+
+  if (!state) {
+    i = -1;
+    len = strlen(txt);
+  }
+
+  while (++i < BUILTINS_COUNT) {
+    if (strncmp(txt, cmd_list[i], len) == 0)
+      return strdup(cmd_list[i]);
+  };
+  return (char *)NULL;
+}
+
+char **handle_completion(const char *text, int start, int end) {
+  char **matches;
+
+  matches = (char **)NULL;
+
+  /* If this word is at the start of the line, then it is a command
+     to complete.  Otherwise it is the name of a file in the current
+     directory. */
+  if (start == 0)
+    matches = rl_completion_matches(text, single_completion);
+
+  return (matches);
+}
+
+void init_rl() {
+  /* Allow conditional parsing of the ~/.inputrc file. */
+  rl_readline_name = "JSHell";
+
+  /* Tell the completer that we want a crack first. */
+  rl_attempted_completion_function = handle_completion;
+}
+
 int main(int argc, char *argv[]) {
+
+  init_rl();
   char *input;
 
   int exitcode = 0;
@@ -92,14 +134,15 @@ int main(int argc, char *argv[]) {
       free(input);
     char *prompt = getenv("PS1");
     if (prompt == NULL) {
-        prompt = "$ ";
+      prompt = "$ ";
     }
     input = readline(prompt);
 
     simple_command *sc;
+    char *curr = input;
     int status = parse(input, &sc);
-
-    exec_cmd(sc);
+    if (status == L_EOL || status == L_EOF)
+      exec_cmd(sc);
   }
   return exitcode;
 }

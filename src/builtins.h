@@ -1,6 +1,8 @@
 #include "parser.h"
 #include "path.h"
 
+#define BUILTINS_COUNT 5
+
 typedef int (*BUILTIN_CMD)(simple_command *sc);
 
 int find_builtin_cmd(char *cmd);

@@ -6,7 +6,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#define BUILTINS_COUNT 5
 
 char *cmd_list[BUILTINS_COUNT] = {"exit", "echo", "type", "pwd", "cd"};
 int find_builtin_cmd(char *cmd) {
