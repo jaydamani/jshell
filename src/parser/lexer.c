@@ -1,5 +1,6 @@
 #include "lexer.h"
 #include <string.h>
+#include <stdbool.h>
 
 #define L_NONNUMERIC_FLAG 0x0001
 

@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "builtins.h"
-#include "parser.h"
-#include "command.h"
+#include "parser/parser.c"
+#include "command.c"
+
 #include <readline/readline.h>
 
 extern char *cmd_list[];
