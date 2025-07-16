@@ -60,7 +60,6 @@ int main(int argc, char *argv[]) {
     input = readline(prompt);
 
     simple_command *sc;
-    char *curr = input;
     int status = parse(input, &sc);
     if (status == L_EOL || status == L_EOF) {
       exec_cmd(sc);

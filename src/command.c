@@ -46,11 +46,12 @@ char *find_path_cmd(char *cmd) {
 
   while ((path = strtok_r(path, ":", &save_ptr))) {
     append_path(path, cmd, file_path);
-    realpath(file_path, file_path);
-    if (access(file_path, X_OK) == 0) {
-      res = strdup(file_path);
+    char *expanded_path = realpath(file_path, NULL);
+    if (access(expanded_path, X_OK) == 0) {
+      res = expanded_path;
       break;
     }
+    free(expanded_path);
     path = NULL;
   }
   free(path_var);
@@ -65,7 +66,6 @@ int exec_cmd(simple_command *sc) {
   int builtin = find_builtin_cmd(sc->name);
   if (builtin != -1) {
     redirection *r = sc->redirects;
-    int redirc = sc->redirc;
     int fds[sc->redirc];
     int clones[sc->redirc];
     for (int i = 0; i < sc->redirc; i++) {
@@ -82,6 +82,7 @@ int exec_cmd(simple_command *sc) {
     for (int i = 0; i < sc->redirc; i++) {
       dup2(clones[i], r->n);
       close(clones[i]);
+      close(fds[i]);
     }
   } else if ((cmd_path = find_path_cmd(sc->name))) {
     char *tokens[sc->argc + 2];
@@ -111,7 +112,7 @@ int exec_cmd(simple_command *sc) {
     } else if (pid == -1) {
       printf("fork error: %s\n", strerror(errno));
     }
-    int s = wait(&ec);
+    wait(&ec);
     free(cmd_path);
   } else {
     printf("%s: command not found\n", sc->name);

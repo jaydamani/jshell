@@ -60,12 +60,13 @@ int pwd(simple_command *sc) {
 
 int cd(simple_command *sc) {
   char *path = sc->args->str;
-  realpath(path, path);
-  if (access(path, F_OK) == 0)
-    chdir(path);
+  char *expanded_path = realpath(path, NULL);
+  if (access(expanded_path, F_OK) == 0)
+    chdir(expanded_path);
   else {
     printf("cd: %s: No such file or directory\n", path);
   }
+  free(expanded_path);
   return 0;
 }
 
