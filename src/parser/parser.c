@@ -1,11 +1,10 @@
 #include "parser.h"
 #include "lexer.c"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
-char *Getvalue(struct token *t) {
-    return strndup(t->str, t->len);
-}
 
 enum L_STATE parse(char *str, simple_command **res) {
 
@@ -60,4 +59,23 @@ enum L_STATE parse(char *str, simple_command **res) {
 
   *res = cmd;
   return l.state;
+}
+
+void free_sc(simple_command* sc) {
+    sc_arg *arg;
+    for (int i = 0; i < sc->argc; i++) {
+        arg = sc->args;
+        sc->args = arg->next;
+        free(arg->str);
+        free(arg);
+    }
+    redirection *redir;
+    for (int i = 0; i < sc->redirc; i++) {
+        redir = sc->redirects;
+        sc->redirects = sc->redirects->next;
+        free(redir->word);
+        free(redir);
+    }
+    free(sc->name);
+    free(sc);
 }

@@ -27,4 +27,5 @@ typedef struct simple_command {
 } simple_command;
 
 enum L_STATE parse(char *str, simple_command **sc);
+void free_sc(simple_command* sc);
 #endif

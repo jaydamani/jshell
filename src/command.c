@@ -38,22 +38,23 @@ int create_arg_array(simple_command *sc, char *tokens[]) {
 }
 
 char *find_path_cmd(char *cmd) {
-  char *path;
   char *path_var = strdup(getenv("PATH"));
+  char *path = path_var;
+  char *save_ptr;
   char *file_path = malloc(PATH_MAX);
   char *res = NULL;
 
-  while ((path = strtok_r(path_var, ":", &path_var))) {
+  while ((path = strtok_r(path, ":", &save_ptr))) {
     append_path(path, cmd, file_path);
     realpath(file_path, file_path);
     if (access(file_path, X_OK) == 0) {
-      res = file_path;
+      res = strdup(file_path);
       break;
     }
+    path = NULL;
   }
-  if (res == NULL) {
-    free(file_path);
-  }
+  free(path_var);
+  free(file_path);
   return res;
 }
 

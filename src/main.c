@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "parser/parser.c"
 #include "command.c"
+#include "parser/parser.c"
 
 #include <readline/readline.h>
 
@@ -53,8 +53,6 @@ int main(int argc, char *argv[]) {
 
   int exitcode = 0;
   for (;;) {
-    if (input != NULL)
-      free(input);
     char *prompt = getenv("PS1");
     if (prompt == NULL) {
       prompt = "$ ";
@@ -64,8 +62,11 @@ int main(int argc, char *argv[]) {
     simple_command *sc;
     char *curr = input;
     int status = parse(input, &sc);
-    if (status == L_EOL || status == L_EOF)
+    if (status == L_EOL || status == L_EOF) {
       exec_cmd(sc);
+      free_sc(sc);
+    }
+    free(input);
   }
   return exitcode;
 }
