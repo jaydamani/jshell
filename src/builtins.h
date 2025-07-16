@@ -3,7 +3,7 @@
 
 #include "parser/parser.h"
 
-#define BUILTINS_COUNT 5
+#define BUILTINS_COUNT 6
 
 typedef int (*BUILTIN_CMD)(simple_command *sc);
 typedef struct builtin_cmd {

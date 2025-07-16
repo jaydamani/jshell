@@ -1,13 +1,16 @@
 #include "builtins.h"
 #include "command.h"
-#include <linux/limits.h>
-#include <unistd.h>
+#include "parser/parser.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-char *cmd_list[BUILTINS_COUNT] = {"exit", "echo", "type", "pwd", "cd"};
+#include <readline/history.h>
+#include <linux/limits.h>
+#include <unistd.h>
+
+char *cmd_list[BUILTINS_COUNT] = {"exit", "echo", "type", "pwd", "cd", "history"};
 int find_builtin_cmd(char *cmd) {
   for (int i = 0; i < BUILTINS_COUNT; i++) {
     if (strcmp(cmd_list[i], cmd) == 0) {
@@ -70,6 +73,21 @@ int cd(simple_command *sc) {
   return 0;
 }
 
-BUILTIN_CMD cmd_f_list[BUILTINS_COUNT] = {b_exit, echo, type, pwd, cd};
+int history(simple_command *sc) {
+    int exit = 0;
+    HISTORY_STATE *hist = history_get_history_state();
+    int max = 10;
+    if (sc->argc > 0) max = atoi(sc->args->str);
+    if (max > hist->length) max = hist->length;
+
+    for (int i = hist->length - max;i < hist->length; i++) {
+        printf("    %d  %s\n", i + 1, hist->entries[i]->line);
+    }
+
+    free(hist);
+    return exit;
+}
+
+BUILTIN_CMD cmd_f_list[BUILTINS_COUNT] = {b_exit, echo, type, pwd, cd, history};
 
 int exec_builtin(simple_command *sc, int i) { return cmd_f_list[i](sc); }

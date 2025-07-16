@@ -1,3 +1,5 @@
+#include <asm-generic/errno-base.h>
+#include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,6 +10,7 @@
 
 #include <readline/history.h>
 #include <readline/readline.h>
+#include <unistd.h>
 
 extern char *cmd_list[];
 
@@ -41,7 +44,32 @@ char **handle_completion(const char *text, int start, int end) {
   printf("done");
 }
 
+char *hist_path;
+int current_hist_start;
+
+void update_history() {
+  if (!hist_path)
+    return;
+  // we need to use write_history if the file does not exist
+  if (access(hist_path, W_OK)) {
+    if (errno == ENOENT && write_history(hist_path))
+      printf("error: %s\n", strerror(errno));
+    else
+      printf("error: %s\n", strerror(errno));
+  } else if (append_history(history_length - current_hist_start, hist_path))
+    printf("error: %s\n", strerror(errno));
+}
+
 void init_rl() {
+  hist_path = getenv("HISTFILE");
+  if (hist_path != NULL) {
+    if (read_history(hist_path) != 0 && errno != ENOENT) {
+      printf("error: %s", strerror(errno));
+    }
+    current_hist_start = history_length;
+    atexit(update_history);
+  }
+
   /* Allow conditional parsing of the ~/.inputrc file. */
   rl_readline_name = "JSHell";
 
