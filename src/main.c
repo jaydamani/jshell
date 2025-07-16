@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,6 +6,7 @@
 #include "command.c"
 #include "parser/parser.c"
 
+#include <readline/history.h>
 #include <readline/readline.h>
 
 extern char *cmd_list[];
@@ -47,6 +49,17 @@ void init_rl() {
   rl_attempted_completion_function = handle_completion;
 }
 
+bool cmp_with_last_entry(char *input) {
+  HISTORY_STATE *hist = history_get_history_state();
+  bool res = true;
+  if (hist->length) {
+    char *last = hist->entries[hist->length - 1]->line;
+    res = strcmp(input, last) != 0;
+  }
+  free(hist);
+  return res;
+}
+
 int main(int argc, char *argv[]) {
   init_rl();
   char *input;
@@ -58,7 +71,8 @@ int main(int argc, char *argv[]) {
       prompt = "$ ";
     }
     input = readline(prompt);
-
+    if (input && *input && cmp_with_last_entry(input))
+      add_history(input);
     simple_command *sc;
     int status = parse(input, &sc);
     if (status == L_EOL || status == L_EOF) {

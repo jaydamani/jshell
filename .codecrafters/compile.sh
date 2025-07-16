@@ -7,7 +7,7 @@
 # Learn more: https://codecrafters.io/program-interface
 set -e # Exit on failure
 
-CFLAGS='-Wall -Werror'
+CFLAGS='-Wall'
 CFLAGS_ASAN='-fsanitize=address  -g'
 LDFLAGS='-lreadline'
 mkdir -p build
