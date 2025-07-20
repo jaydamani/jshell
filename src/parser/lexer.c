@@ -33,7 +33,7 @@ enum L_STATE nextToken(struct lexer *l) {
     return l->state = L_EOF;
   }
 
-  char *start = l->curr;
+  const char *start = l->curr;
 
   if (*l->curr >= '0' && *l->curr <= '9') {
     l->curr++;
@@ -60,7 +60,6 @@ enum L_STATE nextToken(struct lexer *l) {
     // go back to consume as identifiers
     l->curr = start;
   }
-
   t->type = T_WORD;
   do {
     if (*l->curr == '"') {

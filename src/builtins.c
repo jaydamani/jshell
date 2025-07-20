@@ -10,9 +10,11 @@
 #include <linux/limits.h>
 #include <unistd.h>
 
-char *cmd_list[BUILTINS_COUNT] = {"exit", "echo", "type", "pwd", "cd", "history"};
+char *cmd_list[] = {"exit", "echo", "type", "pwd", "cd", "history"};
+int cmd_len = sizeof(cmd_list) / sizeof(cmd_list[0]);
+
 int find_builtin_cmd(char *cmd) {
-  for (int i = 0; i < BUILTINS_COUNT; i++) {
+  for (int i = 0; i < cmd_len; i++) {
     if (strcmp(cmd_list[i], cmd) == 0) {
       return i;
     }
@@ -88,6 +90,6 @@ int history(simple_command *sc) {
     return exit;
 }
 
-BUILTIN_CMD cmd_f_list[BUILTINS_COUNT] = {b_exit, echo, type, pwd, cd, history};
+BUILTIN_CMD cmd_f_list[] = {b_exit, echo, type, pwd, cd, history};
 
 int exec_builtin(simple_command *sc, int i) { return cmd_f_list[i](sc); }

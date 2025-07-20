@@ -23,7 +23,7 @@ enum LW_FLAGS {
 };
 
 typedef struct token {
-  char *str;
+  const char *str;
   int len;
   int flags;
   enum token_type type;
@@ -31,8 +31,8 @@ typedef struct token {
 } token;
 
 struct lexer {
-  char *curr;
-  char *str;
+  const char *curr;
+  const char *str;
   L_STATE state;
   struct token tk;
 };

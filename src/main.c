@@ -6,39 +6,12 @@
 #include <string.h>
 
 #include "command.c"
+#include "completion/completion.c"
 #include "parser/parser.h"
 
 #include <readline/history.h>
 #include <readline/readline.h>
 #include <unistd.h>
-
-extern char *cmd_list[];
-
-char *single_completion(const char *txt, int state) {
-  static int i, len;
-
-  if (!state) {
-    i = -1;
-    len = strlen(txt);
-  }
-
-  while (++i < BUILTINS_COUNT) {
-    if (strncmp(txt, cmd_list[i], len) == 0)
-      return strdup(cmd_list[i]);
-  };
-  return (char *)NULL;
-}
-
-char **handle_completion(const char *text, int start, int end) {
-  char **matches;
-
-  matches = (char **)NULL;
-
-  if (start == 0)
-    matches = rl_completion_matches(text, single_completion);
-
-  return (matches);
-}
 
 char *hist_path;
 int current_hist_start;
@@ -46,20 +19,21 @@ int current_hist_start;
 void update_history() {
   if (!hist_path)
     return;
-  // we need to use write_history if the file does not exist
+  // use write_history to create file if it does not exist
   if (access(hist_path, W_OK)) {
-    if (errno == ENOENT && write_history(hist_path))
-      printf("error: %s\n", strerror(errno));
-    else
-      printf("error: %s\n", strerror(errno));
+    if (errno == ENOENT) {
+      if (write_history(hist_path))
+        printf("error writing history: %s\n", strerror(errno));
+    } else if (errno)
+      printf("error accessing history path(%d): %s\n", errno, strerror(errno));
   } else if (append_history(history_length - current_hist_start, hist_path))
-    printf("error: %s\n", strerror(errno));
+    printf("error appending history: %s\n", strerror(errno));
 }
 
 void init_rl() {
   hist_path = getenv("HISTFILE");
   if (hist_path != NULL) {
-    if (read_history(hist_path) != 0 && errno != ENOENT) {
+    if (read_history(hist_path) && errno != ENOENT) {
       printf("error: %s", strerror(errno));
     }
     current_hist_start = history_length;
@@ -86,6 +60,7 @@ bool cmp_with_last_entry(char *input) {
 
 int main(int argc, char *argv[]) {
   init_rl();
+  init_completion();
   char *input;
 
   int exitcode = 0;

@@ -26,6 +26,6 @@ typedef struct simple_command {
   int redirc;
 } simple_command;
 
-enum L_STATE parse(char *str, simple_command **sc);
+enum L_STATE parse(const char *str, simple_command **sc);
 void free_sc(simple_command* sc);
 #endif
