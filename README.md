@@ -1,12 +1,16 @@
-[![progress-banner](https://backend.codecrafters.io/progress/shell/d4704e0d-cc8a-48d6-9660-d371052efe53)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
+# JShell
 
-This is a starting point for C solutions to the
-["Build Your Own Shell" Challenge](https://app.codecrafters.io/courses/shell/overview).
+JShell is a posix(ish) toy shell with most of the commonly used features and minimal dependencies (only readline to be exact).
 
-In this challenge, you'll build your own POSIX compliant shell that's capable of
-interpreting shell commands, running external programs and builtin commands like
-cd, pwd, echo and more. Along the way, you'll learn about shell command parsing,
-REPLs, builtin commands, and more.
+Started as a "Build your own shell" challenge by [codecrafters](https://app.codecrafters.io/courses/shell/overview) to explore c and learn more about parsers, memory management and systems programming.
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+# Quickstart
+- This project uses Makefile and stores release binary in `build/release/shell` so you can just run below commands:
+```
+git clone https://github.com/jaydamani/JShell
+cd JShell
+make
+build/release/shell
+```
+> [!NOTE]
+> Currently, only unix systems are supported.
