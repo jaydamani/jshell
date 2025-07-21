@@ -6,10 +6,10 @@
   {
     "label": "Debug native binary",
     "build": {
-      "command": ".codecrafters/compile.sh",
+      "command": "make clean && make debug",
       "cwd": "$ZED_WORKTREE_ROOT"
     },
-    "program": "build/shell",
+    "program": "build/debug/shell",
     "request": "launch",
     "adapter": "CodeLLDB"
   }

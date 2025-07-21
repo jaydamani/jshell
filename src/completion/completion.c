@@ -1,14 +1,16 @@
 #include "stdio.h"
+#include <linux/limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "../builtins.h"
 #include "../parser/parser.h"
 #include "chartrie.c"
 
+#include "dirent.h"
 #include <readline/readline.h>
+#include <unistd.h>
 
 cmap cmd_map = {};
 
@@ -74,6 +76,27 @@ void init_completion() {
   for (int i = 0; i < cmd_len; i++) {
     add_to_cmap(&cmd_map, cmd_list[i]);
   }
+  char *path_var = strdup(getenv("PATH"));
+  char *path = path_var;
+  char *save_ptr;
+  char *cmd_name;
+  struct dirent *f;
+
+  while ((path = strtok_r(path, ":", &save_ptr))) {
+    DIR *d = opendir(path);
+    path = NULL;
+    if (d == NULL)
+      continue;
+    while ((f = readdir(d)) != NULL) {
+      if (f->d_type == DT_REG) {
+        cmd_name = strdup(f->d_name);
+        add_to_cmap(&cmd_map, cmd_name);
+        free(cmd_name);
+      }
+    }
+    closedir(d);
+  }
+  free(path_var);
 }
 
 void _() { printf("dasfs"); }
