@@ -22,4 +22,4 @@ build/release/shell
 ```
 cmd arg1 arg2 > out 2> err_our
 ```
-[^*]: stored in path from HISTFILE environment variables
+[^*]: history is stored in path from HISTFILE environment variables
