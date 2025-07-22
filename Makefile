@@ -2,7 +2,7 @@ BUILD := release
 LDFLAGS='-lreadline'
 CFLAGS := -Wall
 RELEASES := release debug
-CFLAGS_debug := -g -Werror -fsanitize=address  -g
+CFLAGS_debug := -g -Werror -fsanitize=address
 CFLAGS_release :=
 SUB_BUILDS = parser/parser.o
 CC=gcc
