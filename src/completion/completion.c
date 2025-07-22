@@ -21,7 +21,7 @@ char *cmd_completion(simple_command *sc, int state) {
   static bool can_continue;
   static int min_len;
   if (!state) {
-    node = find_str_node(&cmd_map.possible_chars, sc->name);
+    node = find_str_node(&cmd_map.possible_chars, sc->words->str);
     if (node == NULL)
       return NULL;
     can_continue = false;
@@ -38,8 +38,8 @@ char *cmd_completion(simple_command *sc, int state) {
   } else {
     min_len = strlen(match);
   }
-  char *res = malloc(strlen(sc->name) + strlen(match) + 1);
-  strcpy(res, sc->name);
+  char *res = malloc(strlen(sc->words->str) + strlen(match) + 1);
+  strcpy(res, sc->words->str);
   strcat(res, match);
   free(match);
   return res;
@@ -53,11 +53,11 @@ char *single_completion(const char *txt, int state) {
   if (!state) {
     free_sc(sc);
     sc = NULL;
-    parse(txt, &sc);
+    parse_cmd(txt, &sc);
     if (!sc)
       return NULL;
   }
-  if (sc->argc == 0)
+  if (sc->wordc == 0)
     func = cmd_completion;
   else
     func = arg_completion;

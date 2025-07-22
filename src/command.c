@@ -7,10 +7,9 @@
 #include <string.h>
 #include <sys/wait.h>
 
-#include <unistd.h>
 #include <fcntl.h>
 #include <linux/limits.h>
-
+#include <unistd.h>
 
 #define PATH_SEP "/"
 
@@ -31,13 +30,12 @@ int append_path(const char *dir, const char *file, char *res) {
 }
 
 int create_arg_array(simple_command *sc, char *tokens[]) {
-  tokens[0] = sc->name;
-  sc_arg *arg = sc->args;
-  for (int i = 1; i <= sc->argc; i++) {
+  sc_arg *arg = sc->words;
+  for (int i = 0; i < sc->wordc; i++) {
     tokens[i] = arg->str;
     arg = arg->next;
   }
-  tokens[sc->argc + 1] = NULL;
+  tokens[sc->wordc] = NULL;
   return 0;
 }
 
@@ -65,9 +63,12 @@ char *find_path_cmd(char *cmd) {
 
 int exec_cmd(simple_command *sc) {
 
+  if (sc->wordc == 0)
+    return -1;
+
   int ec = 0;
   char *cmd_path;
-  int builtin = find_builtin_cmd(sc->name);
+  int builtin = find_builtin_cmd(sc->words->str);
   if (builtin != -1) {
     redirection *r = sc->redirects;
     int fds[sc->redirc];
@@ -88,8 +89,8 @@ int exec_cmd(simple_command *sc) {
       close(clones[i]);
       close(fds[i]);
     }
-  } else if ((cmd_path = find_path_cmd(sc->name))) {
-    char *tokens[sc->argc + 2];
+  } else if ((cmd_path = find_path_cmd(sc->words->str))) {
+    char *tokens[sc->wordc + 1];
     pid_t pid;
 
     if ((pid = fork()) == 0) {
@@ -119,7 +120,7 @@ int exec_cmd(simple_command *sc) {
     wait(&ec);
     free(cmd_path);
   } else {
-    printf("%s: command not found\n", sc->name);
+    printf("%s: command not found\n", sc->words->str);
     ec = 127;
   }
   return ec;

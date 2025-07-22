@@ -3,7 +3,7 @@
 
 #include "lexer.h"
 
-enum REDIR_OP { R_OUT_WRITE = T_GTR, R_OUT_APPEND = T_DGTR};
+enum REDIR_OP { R_OUT_WRITE = T_GTR, R_OUT_APPEND = T_DGTR };
 
 // GRAMMAR: ([n]redir_op word)+
 typedef struct redirection {
@@ -14,18 +14,17 @@ typedef struct redirection {
 } redirection;
 
 typedef struct sc_arg {
-    char *str;
-    struct sc_arg* next;
+  char *str;
+  struct sc_arg *next;
 } sc_arg;
 
 typedef struct simple_command {
-  char *name;
-  sc_arg *args;
-  int argc;
+  sc_arg *words;
+  int wordc;
   redirection *redirects;
   int redirc;
 } simple_command;
 
-enum L_STATE parse(const char *str, simple_command **sc);
-void free_sc(simple_command* sc);
+enum L_STATE parse_cmd(const char *str, simple_command **sc);
+void free_sc(simple_command *sc);
 #endif

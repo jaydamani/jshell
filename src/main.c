@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
     if (input && *input && cmp_with_last_entry(input))
       add_history(input);
     simple_command *sc;
-    int status = parse(input, &sc);
+    int status = parse_cmd(input, &sc);
     if (status == L_EOL || status == L_EOF) {
       exec_cmd(sc);
       free_sc(sc);

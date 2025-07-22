@@ -24,15 +24,15 @@ int find_builtin_cmd(char *cmd) {
 
 int b_exit(simple_command *sc) {
   int exitcode = 0;
-  if (sc->argc == 1) {
-    exitcode = atoi(sc->args->str);
+  if (sc->wordc == 2) {
+    exitcode = atoi(sc->words->next->str);
   }
   exit(exitcode);
 }
 
 int echo(simple_command *sc) {
-  sc_arg *arg = sc->args;
-  for (int i = 0; i < sc->argc; i++) {
+  sc_arg *arg = sc->words->next;
+  for (int i = 1; i < sc->wordc; i++) {
     printf("%s%s", i == 0 ? "" : " ", arg->str);
     arg = arg->next;
   }
@@ -42,10 +42,10 @@ int echo(simple_command *sc) {
 
 int type(simple_command *sc) {
   char *cmd_path;
-  if (sc->argc < 1) {
+  if (sc->wordc < 2) {
     return 0;
   }
-  char *arg_0 = sc->args->str;
+  char *arg_0 = sc->words->next->str;
   if (find_builtin_cmd(arg_0) != -1) {
     printf("%s is a shell builtin\n", arg_0);
   } else if ((cmd_path = find_path_cmd(arg_0))) {
@@ -64,7 +64,7 @@ int pwd(simple_command *sc) {
 }
 
 int cd(simple_command *sc) {
-  char *path = sc->args->str;
+  char *path = sc->words->next->str;
   char *expanded_path = realpath(path, NULL);
   if (access(expanded_path, F_OK) == 0)
     chdir(expanded_path);
@@ -79,7 +79,7 @@ int history(simple_command *sc) {
     int exit = 0;
     HISTORY_STATE *hist = history_get_history_state();
     int max = 10;
-    if (sc->argc > 0) max = atoi(sc->args->str);
+    if (sc->wordc > 1) max = atoi(sc->words->next->str);
     if (max > hist->length) max = hist->length;
 
     for (int i = hist->length - max;i < hist->length; i++) {

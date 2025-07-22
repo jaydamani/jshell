@@ -5,7 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 
-enum L_STATE parse(const char *str, simple_command **res) {
+enum L_STATE parse_cmd(const char *str, simple_command **res) {
 
   if (str == NULL || *str == '\0') {
     return L_EOF;
@@ -17,39 +17,33 @@ enum L_STATE parse(const char *str, simple_command **res) {
       .state = 0,
   };
   struct lexer *lexer = &l;
-  if (nextToken(lexer) != 0) {
-    return l.state;
-  }
-  if (l.tk.type != T_WORD) {
-    return l.state;
-  }
+  // if (l.tk.type != T_WORD) {
+  //   return -1;
+  // }
 
   simple_command *cmd = malloc(sizeof(simple_command));
-  cmd->name = strndup(l.tk.str, l.tk.len);
-  sc_arg **tail = &cmd->args;
-  cmd->argc = 0;
-  while (nextToken(lexer) == 0 && l.tk.type == T_WORD) {
-    cmd->argc++;
-    *tail = malloc(sizeof(sc_arg));
-    (*tail)->str = strndup(l.tk.str, l.tk.len);
-    tail = &(*tail)->next;
-  }
+  // cmd->name = strndup(l.tk.str, l.tk.len);
+  sc_arg **tail = &cmd->words;
+  cmd->wordc = 0;
   cmd->redirc = 0;
   redirection **redirect = &cmd->redirects;
-  while (l.tk.type == T_GTR || l.tk.type == T_DGTR) {
-    cmd->redirc++;
-    *redirect = malloc(sizeof(redirection));
-    (*redirect)->type = (enum REDIR_OP)l.tk.type;
-    // printf("%s\n", t->str);
-    (*redirect)->n = *l.tk.str == '>' ? 1 : *l.tk.str - '0';
-
-    nextToken(&l);
-    if (l.tk.type != T_WORD)
-      return -1;
-    (*redirect)->word = strndup(l.tk.str, l.tk.len);
-
-    redirect = &(*redirect)->next;
-    nextToken(&l);
+  while (nextToken(lexer) == L_CONTINUE) {
+    if (l.tk.type == T_WORD) {
+      cmd->wordc++;
+      *tail = malloc(sizeof(sc_arg));
+      (*tail)->str = strndup(l.tk.str, l.tk.len);
+      tail = &(*tail)->next;
+    } else if (l.tk.type == T_GTR || l.tk.type == T_DGTR) {
+      cmd->redirc++;
+      *redirect = malloc(sizeof(redirection));
+      (*redirect)->type = (enum REDIR_OP)l.tk.type;
+      (*redirect)->n = *l.tk.str == '>' ? 1 : *l.tk.str - '0';
+      nextToken(&l);
+      if (l.tk.type != T_WORD)
+        return -1;
+      (*redirect)->word = strndup(l.tk.str, l.tk.len);
+      redirect = &(*redirect)->next;
+    }
   }
   // for (int i = 0; i < w->we_wordc; i++) {
   //   printf(">%s<\n", w->we_wordv[i]);
@@ -60,22 +54,22 @@ enum L_STATE parse(const char *str, simple_command **res) {
 }
 
 void free_sc(simple_command *sc) {
-  if (sc == NULL) return;
+  if (sc == NULL)
+    return;
 
-  sc_arg *arg;
-  for (int i = 0; i < sc->argc; i++) {
-    arg = sc->args;
-    sc->args = arg->next;
-    free(arg->str);
-    free(arg);
+  sc_arg *tmp_arg, *arg = sc->words;
+  for (int i = 0; i < sc->wordc; i++) {
+    tmp_arg = arg;
+    arg = arg->next;
+    free(tmp_arg->str);
+    free(tmp_arg);
   }
-  redirection *redir;
+  redirection *tmp_redir, *redir = sc->redirects;
   for (int i = 0; i < sc->redirc; i++) {
-    redir = sc->redirects;
-    sc->redirects = sc->redirects->next;
-    free(redir->word);
-    free(redir);
+    tmp_redir = redir;
+    redir = redir->next;
+    free(tmp_redir->word);
+    free(tmp_redir);
   }
-  free(sc->name);
   free(sc);
 }
