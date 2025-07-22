@@ -19,7 +19,5 @@ build/release/shell
 - Persistent history accross setions[^*]
 - Autocomplete for command names and file paths
 - Redirect output with stderr and chaining support
-```
-cmd arg1 arg2 > out 2> err_our
-```
+> `cmd arg1 arg2 > out 2> err_out`
 [^*]: history is stored in path from HISTFILE environment variables
