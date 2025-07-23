@@ -33,7 +33,7 @@ int b_exit(simple_command *sc) {
 int echo(simple_command *sc) {
   sc_arg *arg = sc->words->next;
   for (int i = 1; i < sc->wordc; i++) {
-    printf("%s%s", i == 0 ? "" : " ", arg->str);
+    printf("%s%s", i == 1 ? "" : " ", arg->str);
     arg = arg->next;
   }
   printf("\n");

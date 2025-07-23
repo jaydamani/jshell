@@ -23,8 +23,9 @@ typedef struct simple_command {
   int wordc;
   redirection *redirects;
   int redirc;
+  struct simple_command *next;
 } simple_command;
 
-enum L_STATE parse_cmd(const char *str, simple_command **sc);
+enum L_STATE parse(const char *str, simple_command **sc);
 void free_sc(simple_command *sc);
 #endif

@@ -26,7 +26,7 @@ enum L_STATE nextToken(struct lexer *l) {
     t->len = 1;
     t->type = T_LINEBREAK;
     l->curr++;
-    return l->state = L_EOL;
+    return l->state = L_EOC;
   }
   if (*l->curr == '\0') {
     t->type = T_END;

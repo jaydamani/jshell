@@ -3,7 +3,7 @@
 
 typedef enum L_STATE {
   L_CONTINUE = 0,
-  L_EOL,
+  L_EOC,
   L_EOF,
   L_EOF_QUOTE,
   L_EOF_DQUOTE
@@ -30,12 +30,12 @@ typedef struct token {
   struct token *next;
 } token;
 
-struct lexer {
+typedef struct lexer {
   const char *curr;
   const char *str;
   L_STATE state;
   struct token tk;
-};
+} lexer;
 
 enum L_STATE nextToken(struct lexer *l);
 #endif

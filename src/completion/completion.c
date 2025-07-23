@@ -53,7 +53,7 @@ char *single_completion(const char *txt, int state) {
   if (!state) {
     free_sc(sc);
     sc = NULL;
-    parse_cmd(txt, &sc);
+    parse(txt, &sc);
     if (!sc)
       return NULL;
   }

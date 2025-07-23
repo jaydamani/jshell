@@ -5,7 +5,20 @@
 #include <string.h>
 #include <unistd.h>
 
-enum L_STATE parse_cmd(const char *str, simple_command **res) {
+int parse_redir(lexer *lexer, redirection **redirect) {
+  *redirect = malloc(sizeof(redirection));
+  (*redirect)->type = (enum REDIR_OP)lexer->tk.type;
+  (*redirect)->n = *lexer->tk.str == '>' ? 1 : *lexer->tk.str - '0';
+  nextToken(lexer);
+  if (lexer->tk.type != T_WORD)
+    return -1;
+  (*redirect)->word = strndup(lexer->tk.str, lexer->tk.len);
+  redirect = &(*redirect)->next;
+  return 0;
+}
+
+enum L_STATE parse(const char *str, simple_command **res) {
+  simple_command **res_tail = res;
 
   if (str == NULL || *str == '\0') {
     return L_EOF;
@@ -17,39 +30,34 @@ enum L_STATE parse_cmd(const char *str, simple_command **res) {
       .state = 0,
   };
   struct lexer *lexer = &l;
-  // if (l.tk.type != T_WORD) {
-  //   return -1;
-  // }
 
-  simple_command *cmd = malloc(sizeof(simple_command));
-  // cmd->name = strndup(l.tk.str, l.tk.len);
-  sc_arg **tail = &cmd->words;
-  cmd->wordc = 0;
-  cmd->redirc = 0;
-  redirection **redirect = &cmd->redirects;
-  while (nextToken(lexer) == L_CONTINUE) {
-    if (l.tk.type == T_WORD) {
-      cmd->wordc++;
-      *tail = malloc(sizeof(sc_arg));
-      (*tail)->str = strndup(l.tk.str, l.tk.len);
-      tail = &(*tail)->next;
-    } else if (l.tk.type == T_GTR || l.tk.type == T_DGTR) {
-      cmd->redirc++;
-      *redirect = malloc(sizeof(redirection));
-      (*redirect)->type = (enum REDIR_OP)l.tk.type;
-      (*redirect)->n = *l.tk.str == '>' ? 1 : *l.tk.str - '0';
-      nextToken(&l);
-      if (l.tk.type != T_WORD)
-        return -1;
-      (*redirect)->word = strndup(l.tk.str, l.tk.len);
-      redirect = &(*redirect)->next;
+  while (nextToken(lexer) <= L_EOC) {
+    simple_command *cmd = *res_tail = malloc(sizeof(simple_command));
+    // cmd->name = strndup(l.tk.str, l.tk.len);
+    sc_arg **tail = &cmd->words;
+    cmd->wordc = 0;
+    cmd->redirc = 0;
+    redirection **redirect = &cmd->redirects;
+    while (l.state == L_CONTINUE) {
+      cmd->next = NULL;
+      if (l.tk.type == T_WORD) {
+        cmd->wordc++;
+        *tail = malloc(sizeof(sc_arg));
+        (*tail)->str = strndup(l.tk.str, l.tk.len);
+        tail = &(*tail)->next;
+      } else if (l.tk.type == T_GTR || l.tk.type == T_DGTR) {
+        cmd->redirc++;
+        if (parse_redir(lexer, redirect) != 0)
+            return -1;
+      }
+      nextToken(lexer);
     }
+    res_tail = &cmd->next;
   }
   // for (int i = 0; i < w->we_wordc; i++) {
   //   printf(">%s<\n", w->we_wordv[i]);
   // }
 
-  *res = cmd;
   return l.state;
 }
 

@@ -72,11 +72,13 @@ int main(int argc, char *argv[]) {
     input = readline(prompt);
     if (input && *input && cmp_with_last_entry(input))
       add_history(input);
-    simple_command *sc;
-    int status = parse_cmd(input, &sc);
-    if (status == L_EOL || status == L_EOF) {
-      exec_cmd(sc);
-      free_sc(sc);
+    simple_command *sc = NULL;
+    parse(input, &sc);
+    while (sc != NULL) {
+        exec_cmd(sc);
+        simple_command *tmp = sc;
+        sc = sc->next;
+        free_sc(tmp);
     }
     free(input);
   }
