@@ -1,6 +1,6 @@
 # JShell
 
-JShell is a posix(ish) toy shell with most of the commonly used features and minimal dependencies (only readline to be exact).
+JShell is a unix-like toy shell with most of the commonly used features and minimal dependencies (only readline to be exact).
 
 This started as a "Build your own shell" challenge by [codecrafters](https://app.codecrafters.io/courses/shell/overview) to explore c and learn more about stuff like parsers and memory management. Currently, the end goal is to make it fully POSIX compliant and add some more QOL features.
 
@@ -12,8 +12,6 @@ cd JShell
 make
 build/release/shell
 ```
-> [!NOTE]
-> Currently, only unix systems are supported.
 
 # Highlights
 - Memory safety (ensured by ASAN)
