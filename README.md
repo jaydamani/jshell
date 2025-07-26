@@ -16,8 +16,15 @@ build/release/shell
 > Currently, only unix systems are supported.
 
 # Highlights
+- Memory safety (ensured by ASAN)
 - Persistent history accross setions[^*]
 - Autocomplete for command names and file paths
 - Redirect output with stderr and chaining support
 > `cmd arg1 arg2 > out 2> err_out`
-[^*]: history is stored in path from HISTFILE environment variables
+> `cmd > out arg1 2> err_out # This also needs to be valid as per POSIX specification`
+
+# Roadmap
+- Parallel command execution using `&`
+- Pipeline support with more than 2 commands
+- Variable and path expansions
+[^*]: history is stored in path from HISTFILE environment variable
