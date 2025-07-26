@@ -18,7 +18,7 @@ build/release/shell
 - Persistent history accross setions[^*]
 - Autocomplete for command names and file paths
 - Redirect output with stderr and chaining support
-```
+```sh
 cmd arg1 arg2 > out 2> err_out
 cmd > out arg1 2> err_out # This also needs to be valid as per POSIX specification
 ```
